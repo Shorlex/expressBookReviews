@@ -6,7 +6,7 @@ const regd_users = express.Router();
 let users = [];
 
 const isValid = (username)=>{ //returns boolean
-//write code to check is the username is valid
+    //write code to check is the username is valid
     let existUser = users.filter((user) => {
         return user.username === username;
     });
@@ -19,7 +19,7 @@ const isValid = (username)=>{ //returns boolean
 }
 
 const authenticatedUser = (username,password)=>{ //returns boolean
-//write code to check if username and password match the one we have in records.
+    //write code to check if username and password match the one we have in records.
     let validUser = users.filter((user) => {
         return (user.username === username && user.password === password);
     });
@@ -58,7 +58,32 @@ regd_users.post("/login", (req,res) => {
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
   //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const isbn = req.params.isbn;
+  let filtered_book = books[isbn]
+  if (filtered_book) {
+      let review = req.query.review;
+      let reviewer = req.session.authorization['username'];
+      if(review) {
+          filtered_book['reviews'][reviewer] = review;
+          books[isbn] = filtered_book;
+      }
+      res.send(`The review of the book with ISBN ${isbn} has been updated `);
+  }
+  return res.send("ISBN not found");
+});
+
+// Deleting a book review
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn = req.params.isbn;
+    let reviewer = req.session.authorization['username'];
+    let filtered_review = books[isbn]["reviews"];
+    if (filtered_review[reviewer]){
+        delete filtered_review[reviewer];
+        res.send(`Review of ISBN ${isbn} posted by ${reviewer} has been deleted.`);
+    }
+    else{
+        res.send("Can't delete, as this review has been posted by a different user");
+    }
 });
 
 module.exports.authenticated = regd_users;
